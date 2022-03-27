@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$USER_HOME$/.local/share/multimc/instances/Infinity Render Distance Test/.minecraft/config/jsMacros/Macros/.idea/Macros.iml" filepath="$USER_HOME$/.local/share/multimc/instances/Infinity Render Distance Test/.minecraft/config/jsMacros/Macros/.idea/Macros.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/Minecraft-Server-Scanner.iml" filepath="$PROJECT_DIR$/.idea/Minecraft-Server-Scanner.iml" />
     </modules>
   </component>
