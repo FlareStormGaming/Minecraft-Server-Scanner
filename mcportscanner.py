@@ -1,15 +1,16 @@
 # Scans all ports of a particular minecraft server.
 import time
 
-from mcstatus import MinecraftServer
+from mcstatus import JavaServer
 import threading
 import json
 import termcolor as tc
 import colorama
+from pythonping import ping
 
 colorama.init()
 
-threads = 10_000
+threads = 100
 do_print = False
 
 
@@ -58,20 +59,25 @@ def split_array(in_list, end):
 
 
 def scan(ip, ports):
+    try:
+        ping(ip, count=1)
+    except RuntimeError as e:
+        if str(e).startswith('Cannot resolve address'):
+            return {"failed": [], "succeeded": []}
+    except:
+        pass
+    
     start_time = time.time()
 
     ports = split_array(ports, threads)
 
-    total_out = {
-        "failed": [],
-        "succeeded": []
-    }
+    total_out = {"failed": [], "succeeded": []}
 
     def query(port):
         try:
             out = {
                 "success": True,
-                "status": MinecraftServer(ip, port).status().raw,
+                "status": JavaServer(ip, port).status().raw,
                 "error": None,
                 "port": port
             }
@@ -92,11 +98,10 @@ def scan(ip, ports):
 
     def do_queries(thread_id):
         if not ports[thread_id]:
-            print_warn(f"Thread {thread_id} has no work! Consider decreasing the thread count?")
-        out = {
-            "failed": [],
-            "succeeded": []
-        }
+            print_warn(
+                f"Thread {thread_id} has no work! Consider decreasing the thread count?"
+            )
+        out = {"failed": [], "succeeded": []}
         for i in ports[thread_id]:
             query_out = query(i)
             if query_out['success']:
@@ -118,14 +123,16 @@ def scan(ip, ports):
         x.join()
 
     print_notice(f"Exiting {threads} threads")
-    print_notice(f"Scan took {round(time.time() - start_time, 3)}s to complete")
+    print_notice(
+        f"Scan took {round(time.time() - start_time, 3)}s to complete")
 
     return total_out
 
 
 if __name__ == "__main__":
     target_server = input("Target Server: ")
-    long_mode = input("Search All? (Y is 65536 ports, N is 32767 ports) [Y/n]: ")
+    long_mode = input(
+        "Search All? (Y is 65536 ports, N is 32767 ports) [Y/n]: ")
 
     if long_mode == 'n':
         print_notice("Scanning 32767 ports")
@@ -133,9 +140,9 @@ if __name__ == "__main__":
         print_notice("Scanning 65536 ports")
 
     if long_mode == 'n':
-        scan_out = scan(target_server, 32767)
+        scan_out = scan(target_server, range(0, 32767))
     else:
-        scan_out = scan(target_server, 65536)
+        scan_out = scan(target_server, range(0, 65536))
 
     with open("out.json", 'w') as f:
         f.write(json.dumps(scan_out, indent=4))
